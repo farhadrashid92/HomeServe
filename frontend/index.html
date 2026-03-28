@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Theme & status bar -->
+    <meta name="theme-color" content="#10b981" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="HomeServe" />
+
+    <!-- SEO -->
+    <meta name="description" content="Book trusted home services across Pakistan — cleaning, plumbing, electrical, AC repair and more." />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="HomeServe - Home Services Pakistan" />
+    <meta property="og:description" content="Book trusted home services anywhere in Pakistan." />
+    <meta property="og:type" content="website" />
+
+    <!-- Icons -->
+    <!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" /> -->
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <title>HomeServe - Home Services in Pakistan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Capture beforeinstallprompt before React mounts (timing fix) -->
+    <script>
+      window.__pwaInstallEvent = null;
+      window.__pwaInstalled = window.matchMedia('(display-mode: standalone)').matches;
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        window.__pwaInstallEvent = e;
+        window.dispatchEvent(new Event('pwa-prompt-ready'));
+      });
+      window.addEventListener('appinstalled', function() {
+        window.__pwaInstalled = true;
+        window.__pwaInstallEvent = null;
+      });
+    </script>
+  </head>
+  <body class="bg-gray-50 text-slate-800 font-sans antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
