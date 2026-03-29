@@ -14,6 +14,7 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import { initializePushService } from './services/pushService.js';
 
 import Service from './models/Service.js';
@@ -66,6 +67,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Spin up VAPID crypto services silently injecting environment keys
 initializePushService();
