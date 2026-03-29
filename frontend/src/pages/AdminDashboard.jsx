@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Wrench, FileText, BarChart3, Trash2, Edit, Plus, X } from 'lucide-react';
 import { getAdminAnalytics, getAdminUsers, deleteUser, getAdminServices, deleteService, getAdminBookings } from '../services/adminService';
-import { createService, updateService } from '../services/serviceService';
+import { createService, updateService, getCategories } from '../services/serviceService';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -11,6 +11,7 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [services, setServices] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [availableCategories, setAvailableCategories] = useState([]);
 
   // Modal State
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
@@ -26,7 +27,10 @@ const AdminDashboard = () => {
     try {
       if (activeTab === 'overview') setAnalytics(await getAdminAnalytics());
       if (activeTab === 'users') setUsers(await getAdminUsers());
-      if (activeTab === 'services') setServices(await getAdminServices());
+      if (activeTab === 'services') {
+         setServices(await getAdminServices());
+         setAvailableCategories(await getCategories());
+      }
       if (activeTab === 'bookings') setBookings(await getAdminBookings());
     } catch (err) {
       console.error(err);
@@ -282,11 +286,14 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                    <select required className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none" value={serviceForm.category} onChange={e => setServiceForm({...serviceForm, category: e.target.value})}>
-                      {['Cleaning', 'Maintenance', 'Plumbing', 'Electrical', 'Pest Control', 'Painting', 'Carpenter', 'CCTV Installation', 'Gardening', 'Home Shifting'].map(cat => (
-                         <option key={cat} value={cat}>{cat}</option>
+                    <input list="category-options" required className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none" placeholder="e.g. Plumbing or Solar" value={serviceForm.category} onChange={e => setServiceForm({...serviceForm, category: e.target.value})} />
+                    <datalist id="category-options">
+                      {availableCategories.length > 0 ? availableCategories.map(cat => (
+                         <option key={cat} value={cat} />
+                      )) : ['Cleaning', 'Maintenance', 'Plumbing', 'Electrical', 'Pest Control', 'Painting', 'Carpenter', 'CCTV Installation', 'Gardening', 'Home Shifting'].map(cat => (
+                         <option key={cat} value={cat} />
                       ))}
-                    </select>
+                    </datalist>
                   </div>
                   <div>
                      <label className="block text-sm font-medium text-slate-700 mb-1">Price (PKR)</label>

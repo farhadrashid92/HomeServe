@@ -18,6 +18,18 @@ export const getServices = async (req, res) => {
   }
 };
 
+// @desc    Get all unique categories
+// @route   GET /api/services/categories
+// @access  Public
+export const getCategories = async (req, res) => {
+  try {
+    const categories = await Service.distinct('category');
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
 // @desc    Get single service
 // @route   GET /api/services/:id
 // @access  Public

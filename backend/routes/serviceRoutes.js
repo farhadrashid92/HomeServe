@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getServices,
+  getCategories,
   getServiceById,
   createService,
   updateService,
@@ -10,6 +11,8 @@ import { protect } from '../middleware/authMiddleware.js';
 import { authorizeRoles } from '../middleware/roleMiddleware.js';
 
 const router = express.Router();
+
+router.route('/categories').get(getCategories);
 
 router.route('/')
   .get(getServices)
