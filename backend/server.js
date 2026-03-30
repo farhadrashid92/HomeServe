@@ -15,9 +15,11 @@ import aiRoutes from './routes/aiRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
 import { initializePushService } from './services/pushService.js';
 
 import Service from './models/Service.js';
+import Category from './models/Category.js';
 
 // Connect to database
 connectDB().then(async () => {
@@ -33,6 +35,17 @@ connectDB().then(async () => {
         await s.save();
       }
       console.log(`Migrated ${servicesToMigrate.length} services to apply new array providers schema.`);
+    }
+
+    // Auto-seed Category collection from existing service category strings
+    const categoryCount = await Category.countDocuments();
+    if (categoryCount === 0) {
+      const uniqueCats = await Service.distinct('category');
+      if (uniqueCats.length > 0) {
+        const docs = uniqueCats.filter(Boolean).map(name => ({ name }));
+        await Category.insertMany(docs, { ordered: false }).catch(() => {});
+        console.log(`✅ Seeded ${docs.length} categories from existing services.`);
+      }
     }
   } catch (err) {
     console.error('Migration failed silently:', err.message);
@@ -68,6 +81,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Spin up VAPID crypto services silently injecting environment keys
 initializePushService();

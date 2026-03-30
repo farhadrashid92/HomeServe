@@ -3,14 +3,12 @@ import { Menu, X, User, LogOut, ChevronDown, Bell, MessageSquare } from 'lucide-
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getUnreadCount } from '../services/messageService';
-import { getCategories } from '../services/serviceService';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [unreadMsg, setUnreadMsg] = useState(0);
-  const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
   const { isAuthenticated, currentUser, logout } = useAuth();
 
@@ -25,19 +23,6 @@ const Navbar = () => {
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Fetch Categories uniquely for dynamic Navbar tracking
-  useEffect(() => {
-    const fetchCats = async () => {
-      try {
-        const data = await getCategories();
-        setCategories(data);
-      } catch (err) {
-        console.error('Failed fetching categories for Navbar', err);
-      }
-    };
-    fetchCats();
   }, []);
 
   // Globally track unread messaging counts avoiding massive prop-drilling
@@ -74,23 +59,6 @@ const Navbar = () => {
           
           <div className="hidden sm:flex sm:items-center sm:space-x-8">
             <Link to="/" className="text-slate-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Home</Link>
-            
-            {/* Dynamic Hover Tracking Categories */}
-            <div className="relative group p-2">
-              <button className="flex items-center gap-1 text-slate-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Categories <ChevronDown className={`h-4 w-4 transition-transform group-hover:rotate-180`} />
-              </button>
-              <div className="absolute left-0 mt-0 w-64 bg-white rounded-2xl shadow-[0_10px_40px_-5px_rgba(0,0,0,0.1)] border border-slate-100 py-3 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top translate-y-2 group-hover:translate-y-0 before:absolute before:-top-4 before:left-0 before:w-full before:h-4">
-                  {categories.length > 0 ? categories.map(cat => (
-                     <Link key={cat} to={`/services?category=${encodeURIComponent(cat)}`} className="block px-6 py-2.5 text-sm text-slate-600 hover:bg-primary-50 hover:text-primary-600 font-medium transition-colors">
-                       {cat}
-                     </Link>
-                  )) : (
-                     <span className="block px-6 py-2 text-sm text-slate-400">Loading categories...</span>
-                  )}
-              </div>
-            </div>
-
             <Link to="/services" className="text-slate-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Services</Link>
             <Link to="/about" className="text-slate-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">About</Link>
             <Link to="/contact" className="text-slate-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Contact</Link>
@@ -160,21 +128,7 @@ const Navbar = () => {
         <div className="sm:hidden bg-white shadow-lg border-b absolute w-full left-0 max-h-[90vh] overflow-y-auto">
           <div className="pt-2 pb-4 space-y-1 px-4">
             <Link to="/" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary-600 hover:bg-primary-50">Home</Link>
-            
-            {/* Mobile Categories Dropdown Logic */}
-            <div className="px-3 py-3 my-1 bg-slate-50 rounded-xl border border-slate-100">
-               <div className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1 mb-2">Categories</div>
-               <div className="grid grid-cols-2 gap-y-2 gap-x-1">
-                 {categories.map(cat => (
-                    <Link key={cat} to={`/services?category=${encodeURIComponent(cat)}`} onClick={() => setIsOpen(false)} className="text-sm font-medium text-slate-600 hover:text-primary-600 truncate pl-1">
-                      {cat}
-                    </Link>
-                 ))}
-                 {categories.length === 0 && <span className="text-xs text-slate-400 pl-1">Loading...</span>}
-               </div>
-            </div>
-
-            <Link to="/services" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary-600 hover:bg-primary-50">All Services</Link>
+            <Link to="/services" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary-600 hover:bg-primary-50">Services</Link>
             <Link to="/about" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary-600 hover:bg-primary-50">About</Link>
             <Link to="/contact" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary-600 hover:bg-primary-50">Contact</Link>
             

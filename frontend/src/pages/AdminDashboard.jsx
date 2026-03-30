@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Users, Wrench, FileText, BarChart3, Trash2, Edit, Plus, X } from 'lucide-react';
+import { Users, Wrench, FileText, BarChart3, Trash2, Edit, Plus, X, Tag } from 'lucide-react';
 import { getAdminAnalytics, getAdminUsers, deleteUser, getAdminServices, deleteService, getAdminBookings } from '../services/adminService';
-import { createService, updateService, getCategories } from '../services/serviceService';
+import { createService, updateService } from '../services/serviceService';
+import { getCategories, createCategory, updateCategory, deleteCategory } from '../services/categoryService';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -11,12 +12,17 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [services, setServices] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [availableCategories, setAvailableCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
 
-  // Modal State
+  // Service Modal State
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [editingService, setEditingService] = useState(null);
-  const [serviceForm, setServiceForm] = useState({ title: '', category: 'Cleaning', price: '', description: '', image: '' });
+  const [serviceForm, setServiceForm] = useState({ title: '', category: '', price: '', description: '', image: '' });
+
+  // Category Modal State
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [categoryForm, setCategoryForm] = useState({ name: '', description: '' });
   
   useEffect(() => {
     fetchData();
@@ -29,18 +35,19 @@ const AdminDashboard = () => {
       if (activeTab === 'users') setUsers(await getAdminUsers());
       if (activeTab === 'services') {
          setServices(await getAdminServices());
-         setAvailableCategories(await getCategories());
+         setCategories(await getCategories());
       }
       if (activeTab === 'bookings') setBookings(await getAdminBookings());
+      if (activeTab === 'categories') setCategories(await getCategories());
     } catch (err) {
       console.error(err);
-      alert('Failed to load data. Are you an admin? (Remember to push your latest code to render!)');
+      alert('Failed to load data. Are you an admin?');
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Handlers ---
+  // --- User Handlers ---
   const handleDeleteUser = async (id) => {
     if(!window.confirm('Are you sure you want to completely delete this user?')) return;
     try {
@@ -51,6 +58,7 @@ const AdminDashboard = () => {
     }
   };
 
+  // --- Service Handlers ---
   const handleDeleteService = async (id) => {
     if(!window.confirm('Are you sure you want to delete this service?')) return;
     try {
@@ -61,13 +69,13 @@ const AdminDashboard = () => {
     }
   };
 
-  const openAddModal = () => {
+  const openAddServiceModal = () => {
     setEditingService(null);
-    setServiceForm({ title: '', category: 'Cleaning', price: '', description: '', image: '' });
+    setServiceForm({ title: '', category: categories.length > 0 ? categories[0].name : '', price: '', description: '', image: '' });
     setIsServiceModalOpen(true);
   };
 
-  const openEditModal = (service) => {
+  const openEditServiceModal = (service) => {
     setEditingService(service);
     setServiceForm({ 
        title: service.title, 
@@ -95,6 +103,45 @@ const AdminDashboard = () => {
     }
   };
 
+  // --- Category Handlers ---
+  const openAddCategoryModal = () => {
+    setEditingCategory(null);
+    setCategoryForm({ name: '', description: '' });
+    setIsCategoryModalOpen(true);
+  };
+
+  const openEditCategoryModal = (cat) => {
+    setEditingCategory(cat);
+    setCategoryForm({ name: cat.name, description: cat.description || '' });
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleCategorySubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingCategory) {
+        const updated = await updateCategory(editingCategory._id, categoryForm);
+        setCategories(categories.map(c => c._id === updated._id ? updated : c));
+      } else {
+        const created = await createCategory(categoryForm);
+        setCategories([...categories, created]);
+      }
+      setIsCategoryModalOpen(false);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Operation failed');
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if(!window.confirm('Delete this category? Services using it will keep their current assignment.')) return;
+    try {
+      await deleteCategory(id);
+      setCategories(categories.filter(c => c._id !== id));
+    } catch (err) {
+      alert('Delete failed');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-8">
@@ -115,6 +162,12 @@ const AdminDashboard = () => {
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'users' ? 'bg-primary-600 text-white font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
               >
                 <Users className="w-5 h-5" /> Manage Users
+              </button>
+              <button 
+                onClick={() => setActiveTab('categories')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'categories' ? 'bg-primary-600 text-white font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+              >
+                <Tag className="w-5 h-5" /> Categories
               </button>
               <button 
                 onClick={() => setActiveTab('services')}
@@ -140,6 +193,7 @@ const AdminDashboard = () => {
              </div>
           ) : (
             <>
+              {/* ===== ANALYTICS ===== */}
               {activeTab === 'overview' && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-slate-900">Platform Analytics</h2>
@@ -164,6 +218,7 @@ const AdminDashboard = () => {
                 </div>
               )}
               
+              {/* ===== USERS TABLE ===== */}
               {activeTab === 'users' && (
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <table className="min-w-full divide-y divide-gray-200">
@@ -185,7 +240,7 @@ const AdminDashboard = () => {
                               {u.role.toUpperCase()}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+                          <td className="px-6 py-4 whitespace-nowrap">
                              <button onClick={() => handleDeleteUser(u._id)} className="text-red-500 hover:text-red-700 p-2"><Trash2 className="w-5 h-5"/></button>
                           </td>
                         </tr>
@@ -195,10 +250,55 @@ const AdminDashboard = () => {
                 </div>
               )}
 
+              {/* ===== CATEGORIES TABLE ===== */}
+              {activeTab === 'categories' && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-bold text-slate-900">Manage Categories</h2>
+                    <button onClick={openAddCategoryModal} className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-colors">
+                      <Plus className="w-4 h-4" /> Add Category
+                    </button>
+                  </div>
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-slate-50">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Name</th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Description</th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 bg-white">
+                        {categories.length > 0 ? categories.map(cat => (
+                          <tr key={cat._id} className="hover:bg-slate-50">
+                            <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-900">
+                              <span className="inline-flex items-center gap-2">
+                                <Tag className="w-4 h-4 text-primary-500" />
+                                {cat.name}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-slate-500 text-sm max-w-xs truncate">{cat.description || '—'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap flex gap-2">
+                               <button onClick={() => openEditCategoryModal(cat)} className="text-blue-500 hover:text-blue-700 p-2"><Edit className="w-5 h-5"/></button>
+                               <button onClick={() => handleDeleteCategory(cat._id)} className="text-red-500 hover:text-red-700 p-2"><Trash2 className="w-5 h-5"/></button>
+                            </td>
+                          </tr>
+                        )) : (
+                          <tr>
+                            <td colSpan={3} className="px-6 py-10 text-center text-slate-400">No categories yet. Click "Add Category" to create one.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ===== SERVICES TABLE ===== */}
               {activeTab === 'services' && (
                 <div className="space-y-4">
                   <div className="flex justify-end">
-                    <button onClick={openAddModal} className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-colors">
+                    <button onClick={openAddServiceModal} className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-colors">
                       <Plus className="w-4 h-4" /> Add New Service
                     </button>
                   </div>
@@ -219,7 +319,7 @@ const AdminDashboard = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-slate-500 capitalize">{s.category}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-slate-500 pr-2">PKR {s.price}</td>
                             <td className="px-6 py-4 whitespace-nowrap flex gap-2">
-                               <button onClick={() => openEditModal(s)} className="text-blue-500 hover:text-blue-700 p-2"><Edit className="w-5 h-5"/></button>
+                               <button onClick={() => openEditServiceModal(s)} className="text-blue-500 hover:text-blue-700 p-2"><Edit className="w-5 h-5"/></button>
                                <button onClick={() => handleDeleteService(s._id)} className="text-red-500 hover:text-red-700 p-2"><Trash2 className="w-5 h-5"/></button>
                             </td>
                           </tr>
@@ -230,6 +330,7 @@ const AdminDashboard = () => {
                 </div>
               )}
 
+              {/* ===== BOOKINGS TABLE ===== */}
               {activeTab === 'bookings' && (
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <table className="min-w-full divide-y divide-gray-200">
@@ -267,7 +368,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Service Add/Edit Modal */}
+      {/* ===== SERVICE ADD/EDIT MODAL ===== */}
       {isServiceModalOpen && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -286,14 +387,12 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                    <input list="category-options" required className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none" placeholder="e.g. Plumbing or Solar" value={serviceForm.category} onChange={e => setServiceForm({...serviceForm, category: e.target.value})} />
-                    <datalist id="category-options">
-                      {availableCategories.length > 0 ? availableCategories.map(cat => (
-                         <option key={cat} value={cat} />
-                      )) : ['Cleaning', 'Maintenance', 'Plumbing', 'Electrical', 'Pest Control', 'Painting', 'Carpenter', 'CCTV Installation', 'Gardening', 'Home Shifting'].map(cat => (
-                         <option key={cat} value={cat} />
+                    <select required className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none bg-white" value={serviceForm.category} onChange={e => setServiceForm({...serviceForm, category: e.target.value})}>
+                      <option value="" disabled>Select category</option>
+                      {categories.map(cat => (
+                         <option key={cat._id} value={cat.name}>{cat.name}</option>
                       ))}
-                    </datalist>
+                    </select>
                   </div>
                   <div>
                      <label className="block text-sm font-medium text-slate-700 mb-1">Price (PKR)</label>
@@ -314,6 +413,38 @@ const AdminDashboard = () => {
                <button onClick={() => setIsServiceModalOpen(false)} className="px-5 py-2 text-slate-500 hover:text-slate-700 font-medium rounded-xl">Cancel</button>
                <button type="submit" form="serviceForm" className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-sm transition-colors">
                   {editingService ? 'Save Changes' : 'Create Service'}
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== CATEGORY ADD/EDIT MODAL ===== */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
+              <h3 className="text-xl font-bold text-slate-900">{editingCategory ? 'Edit Category' : 'Add New Category'}</h3>
+              <button onClick={() => setIsCategoryModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                 <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6">
+              <form id="categoryForm" onSubmit={handleCategorySubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Category Name</label>
+                  <input required type="text" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none" placeholder="e.g. Solar Installation" value={categoryForm.name} onChange={e => setCategoryForm({...categoryForm, name: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Description <span className="text-slate-400">(optional)</span></label>
+                  <textarea rows={3} className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none" placeholder="Brief description of this service category..." value={categoryForm.description} onChange={e => setCategoryForm({...categoryForm, description: e.target.value})} />
+                </div>
+              </form>
+            </div>
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 shrink-0">
+               <button onClick={() => setIsCategoryModalOpen(false)} className="px-5 py-2 text-slate-500 hover:text-slate-700 font-medium rounded-xl">Cancel</button>
+               <button type="submit" form="categoryForm" className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl shadow-sm transition-colors">
+                  {editingCategory ? 'Save Changes' : 'Create Category'}
                </button>
             </div>
           </div>
