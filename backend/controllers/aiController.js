@@ -21,21 +21,17 @@ Extract the following information from the user's prompt:
 
 You MUST return ONLY a raw JSON object string with these EXACT 6 keys. No markdown backticks, no conversational text.`;
 
-    // Attempt to leverage user's provided key or default to a safe blank preventing internal server crashes
-    const apiKey = process.env.GEMINI_API_KEY || 'MOCK_KEY';
+    const apiKey = process.env.GEMINI_API_KEY;
     
-    if (apiKey === 'MOCK_KEY') {
-       // Graceful degraded state for demonstration if admin hasn't configured Keys yet
-       return res.json({
-         category: "Cleaning",
-         date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-         time: "02:00 PM",
-         notes: "Auto-extracted: " + prompt
+    if (!apiKey || apiKey === 'MOCK_KEY') {
+       console.warn('⚠️  GEMINI_API_KEY is not set. Add it to your Render environment variables.');
+       return res.status(503).json({ 
+         message: "AI service is not configured. Please add GEMINI_API_KEY to your Render environment variables." 
        });
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const result = await model.generateContent([
       { text: systemInstruction },
@@ -49,6 +45,14 @@ You MUST return ONLY a raw JSON object string with these EXACT 6 keys. No markdo
     return res.json(parsedData);
   } catch (error) {
     console.error('AI Extraction Error:', error.message);
-    return res.status(500).json({ message: "Failed to process AI booking logic." });
+    
+    if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('API key')) {
+      return res.status(401).json({ message: "Invalid Gemini API key. Please check your GEMINI_API_KEY on Render." });
+    }
+    if (error.message?.includes('not found') || error.message?.includes('is not found')) {
+      return res.status(500).json({ message: "Gemini model not available. The model name may need updating." });
+    }
+    
+    return res.status(500).json({ message: "Failed to process AI booking logic.", error: error.message });
   }
 };

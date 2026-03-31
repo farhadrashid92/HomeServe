@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     loginUser,
     logoutUser,
+    logout: logoutUser,
     isAuthenticated: !!currentUser,
     isCustomer: currentUser?.role === 'customer',
     isProvider: currentUser?.role === 'provider',

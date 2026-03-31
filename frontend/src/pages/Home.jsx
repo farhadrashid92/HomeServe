@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Shield, Clock, Star, Sparkles, Loader2, Bot } from 'lucide-react';
 import { getServices } from '../services/serviceService';
+import api from '../services/api';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -35,14 +36,8 @@ const Home = () => {
     setAiError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/ai/booking-extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: aiPrompt })
-      });
-      if (!response.ok) throw new Error("Our AI engines are temporarily overwhelmed. Please try standard search.");
-      
-      const parsedData = await response.json();
+      const response = await api.post('/ai/booking-extract', { prompt: aiPrompt });
+      const parsedData = response.data;
       
       // Store AI preferences in sessionStorage crossing route boundaries seamlessly
       if (parsedData.date || parsedData.time || parsedData.notes || parsedData.city || parsedData.street) {
@@ -60,14 +55,11 @@ const Home = () => {
       // Preach the category navigation by matching strict Object IDs dropping them into checkout
       if (parsedData.category && parsedData.category !== 'Unknown') {
           try {
-             // Retrieve actual active Service parameters securely from backend REST maps
-             const backendRes = await fetch(`http://localhost:5000/api/services?category=${encodeURIComponent(parsedData.category)}`);
-             if (backendRes.ok) {
-                 const mappedServices = await backendRes.json();
-                 if (mappedServices.length > 0) {
-                     navigate(`/book/${mappedServices[0]._id}`);
-                     return;
-                 }
+             const backendRes = await api.get(`/services?category=${encodeURIComponent(parsedData.category)}`);
+             const mappedServices = backendRes.data;
+             if (mappedServices.length > 0) {
+                 navigate(`/book/${mappedServices[0]._id}`);
+                 return;
              }
           } catch(e) {}
           navigate(`/services?category=${encodeURIComponent(parsedData.category)}`);
@@ -75,7 +67,7 @@ const Home = () => {
           navigate('/services');
       }
     } catch (err) {
-      setAiError(err.message);
+      setAiError(err.response?.data?.message || err.message || "Our AI engines are temporarily overwhelmed. Please try standard search.");
     } finally {
       setAiLoading(false);
     }
