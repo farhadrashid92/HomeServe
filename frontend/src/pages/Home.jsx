@@ -55,6 +55,7 @@ const Home = () => {
       // Preach the category navigation by matching strict Object IDs dropping them into checkout
       if (parsedData.category && parsedData.category !== 'Unknown') {
           try {
+             // Retrieve actual active Service parameters securely from backend REST maps
              const backendRes = await api.get(`/services?category=${encodeURIComponent(parsedData.category)}`);
              const mappedServices = backendRes.data;
              if (mappedServices.length > 0) {
@@ -67,7 +68,7 @@ const Home = () => {
           navigate('/services');
       }
     } catch (err) {
-      setAiError(err.response?.data?.message || err.message || "Our AI engines are temporarily overwhelmed. Please try standard search.");
+      setAiError(err.response?.data?.message || err.message || "An unexpected error occurred.");
     } finally {
       setAiLoading(false);
     }
