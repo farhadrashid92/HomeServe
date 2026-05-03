@@ -56,6 +56,9 @@ You MUST return ONLY a raw JSON object string with these EXACT 6 keys. No markdo
     if (error.message?.includes('not found') || error.message?.includes('is not found')) {
       return res.status(500).json({ message: "Gemini model not available. The model name may need updating." });
     }
+    if (error.message?.includes('quota') || error.message?.includes('429') || error.message?.includes('exhausted')) {
+      return res.status(429).json({ message: "AI Quota Exceeded. Please check your Google AI Studio billing/quota settings." });
+    }
     
     return res.status(500).json({ message: "Failed to process AI booking logic.", error: error.message });
   }
