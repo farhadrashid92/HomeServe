@@ -48,21 +48,44 @@ You MUST return ONLY a raw JSON object string with these EXACT 6 keys. No markdo
 
     return res.json(parsedData);
   } catch (error) {
-    console.error('AI Extraction Error:', error.message);
+    console.error('AI Extraction Error, utilizing local fallback:', error.message);
     
-    if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('API key')) {
-      return res.status(401).json({ message: "Invalid Gemini API key. Please check your GEMINI_API_KEY on Render." });
+    // Fallback Local NLP Extractor
+    let category = "";
+    const lowerPrompt = prompt.toLowerCase();
+    const categoriesArray = categoriesList.split(', ');
+    for (let c of categoriesArray) {
+      if (lowerPrompt.includes(c.toLowerCase()) || 
+         (c.toLowerCase() === 'plumbing' && lowerPrompt.includes('plumber')) ||
+         (c.toLowerCase() === 'electrical' && lowerPrompt.includes('electrician'))) {
+        category = c;
+        break;
+      }
     }
-    if (error.message?.includes('not found') || error.message?.includes('is not found')) {
-      return res.status(500).json({ message: "Gemini model not available. The model name may need updating." });
+
+    let date = "";
+    if (lowerPrompt.includes("tomorrow")) {
+      let d = new Date();
+      d.setDate(d.getDate() + 1);
+      date = d.toISOString().split('T')[0];
+    } else if (lowerPrompt.includes("today")) {
+      date = new Date().toISOString().split('T')[0];
     }
-    if (error.message?.includes('quota') || error.message?.includes('429') || error.message?.includes('exhausted')) {
-      return res.status(429).json({ message: "AI Quota Exceeded. Please check your Google AI Studio billing/quota settings." });
-    }
-    if (error.message?.includes('403') || error.message?.includes('Forbidden') || error.message?.includes('denied access')) {
-      return res.status(403).json({ message: "Access Denied by Google: Your free tier key is not authorized for this specific model version." });
-    }
-    
-    return res.status(500).json({ message: "Failed to process AI booking logic.", error: error.message });
+
+    let time = "";
+    if (lowerPrompt.match(/9\s*(am|a)/i)) time = "09:00 AM";
+    else if (lowerPrompt.match(/11\s*(am|a)/i)) time = "11:00 AM";
+    else if (lowerPrompt.match(/2\s*(pm|p)/i)) time = "02:00 PM";
+    else if (lowerPrompt.match(/4\s*(pm|p)/i)) time = "04:00 PM";
+    else if (lowerPrompt.match(/6\s*(pm|p)/i)) time = "06:00 PM";
+
+    return res.json({
+      category,
+      date,
+      time,
+      city: "",
+      street: "",
+      notes: "Auto-extracted via Backup System: " + prompt
+    });
   }
 };
