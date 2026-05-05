@@ -32,7 +32,7 @@ You MUST return ONLY a raw JSON object string with these EXACT 6 keys. No markdo
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
-       model: "gemini-2.5-flash",
+       model: "gemini-2.0-flash",
        generationConfig: { responseMimeType: "application/json" }
     });
 
@@ -58,6 +58,9 @@ You MUST return ONLY a raw JSON object string with these EXACT 6 keys. No markdo
     }
     if (error.message?.includes('quota') || error.message?.includes('429') || error.message?.includes('exhausted')) {
       return res.status(429).json({ message: "AI Quota Exceeded. Please check your Google AI Studio billing/quota settings." });
+    }
+    if (error.message?.includes('403') || error.message?.includes('Forbidden') || error.message?.includes('denied access')) {
+      return res.status(403).json({ message: "Access Denied by Google: Your free tier key is not authorized for this specific model version." });
     }
     
     return res.status(500).json({ message: "Failed to process AI booking logic.", error: error.message });
