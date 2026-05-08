@@ -62,6 +62,11 @@ You MUST return ONLY a raw JSON object string with these EXACT 6 keys. No markdo
     if (error.message?.includes('403') || error.message?.includes('Forbidden') || error.message?.includes('denied access')) {
       return res.status(403).json({ message: "Access Denied by Google: Your free tier key is not authorized for this specific model version." });
     }
+    if (error.message?.includes('User location is not supported')) {
+      return res.status(400).json({ 
+        message: "Gemini API is blocked in your server's current region (e.g., Europe/UK). To fix this, change your production server region to the US (e.g., Oregon) or enable billing on your Google Cloud Project." 
+      });
+    }
     
     return res.status(500).json({ message: "Failed to process AI booking logic.", error: error.message });
   }
