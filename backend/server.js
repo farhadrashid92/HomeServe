@@ -4,6 +4,9 @@ dotenv.config(); // Must be first so env vars are available to all imports below
 import express from 'express';
 import cors from 'cors';
 import compression from 'compression';
+import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
+import rateLimit from 'express-rate-limit';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
@@ -55,12 +58,30 @@ connectDB().then(async () => {
 
 const app = express();
 
+// Secure HTTP headers
+app.use(helmet());
+
 // Apply gzip compression to all responses
 app.use(compression());
 
 // Body parser with 10MB limit for Base64 image strings
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+// Global API rate limiter
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  message: 'Too many requests from this IP, please try again after 15 minutes',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Apply rate limiter to all /api routes
+app.use('/api', apiLimiter);
 
 // Enable CORS — strictly accepting requests from the generated Vercel string or local dev bounds
 app.use(cors({
