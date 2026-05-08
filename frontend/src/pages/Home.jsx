@@ -15,8 +15,11 @@ const Home = () => {
   const [aiError, setAiError] = useState('');
 
   useEffect(() => {
-    getServices()
-      .then(data => setServices(data.slice(0, 6))) // show up to 6 on homepage
+    getServices({ limit: 4 })
+      .then(response => {
+        const data = response.data || [];
+        setServices(data.slice(0, 4));
+      }) // show up to 4 on homepage
       .catch(() => {}); // silent fail — page still renders
   }, []);
 
@@ -57,7 +60,7 @@ const Home = () => {
           try {
              // Retrieve actual active Service parameters securely from backend REST maps
              const backendRes = await api.get(`/services?category=${encodeURIComponent(parsedData.category)}`);
-             const mappedServices = backendRes.data;
+             const mappedServices = backendRes.data?.data || backendRes.data;
              if (mappedServices.length > 0) {
                  navigate(`/book/${mappedServices[0]._id}`);
                  return;
@@ -199,6 +202,7 @@ const Home = () => {
               <div key={service._id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-100 group">
                 <div className="h-48 overflow-hidden relative">
                   <img
+                    loading="lazy"
                     src={service.image || `https://source.unsplash.com/800x600/?${service.category}`}
                     alt={service.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

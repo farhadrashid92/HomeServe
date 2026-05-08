@@ -11,27 +11,59 @@ const Services = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   // When URL params change (e.g. user clicks a footer/homepage link), update filters
   useEffect(() => {
     const cat = searchParams.get('category');
     const search = searchParams.get('search');
     if (cat) setSelectedCategory(cat);
     if (search) setSearchTerm(search);
+    setPage(1); // Reset page on filter change
+    setServices([]);
   }, [searchParams]);
 
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const data = await getServices();
-        setServices(data);
-      } catch (err) {
-        setError('Failed to load services. Please try again later.');
-      } finally {
-        setLoading(false);
+  const fetchServices = async (currentPage, isLoadMore = false) => {
+    try {
+      if (isLoadMore) setLoadingMore(true);
+      else setLoading(true);
+
+      const params = { page: currentPage, limit: 6 };
+      // Note: we can pass category/search to backend, but currently it's filtered frontend.
+      // If backend supports category/search, we pass it:
+      if (selectedCategory !== 'All') params.category = selectedCategory;
+      if (searchTerm) params.search = searchTerm;
+
+      const response = await getServices(params);
+      
+      if (isLoadMore) {
+        setServices(prev => [...prev, ...response.data]);
+      } else {
+        setServices(response.data);
       }
-    };
-    fetchServices();
-  }, []);
+      setTotalPages(response.pages);
+    } catch (err) {
+      setError('Failed to load services. Please try again later.');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    // Only fetch if we are not filtering on the frontend OR if backend is doing the filter
+    // Actually, previously it fetched all and filtered on frontend.
+    // Since backend supports ?category and ?search, we should use backend filtering.
+    fetchServices(page, page > 1);
+  }, [page, selectedCategory, searchTerm]);
+
+  const handleLoadMore = () => {
+    if (page < totalPages) {
+      setPage(prev => prev + 1);
+    }
+  };
 
   const categories = ['All', 'Cleaning', 'Maintenance', 'Plumbing', 'Electrical', 'Pest Control', 'Painting', 'Carpenter', 'CCTV Installation', 'Gardening', 'Home Shifting'];
 
@@ -101,12 +133,12 @@ const Services = () => {
         </div>
 
         {/* Services Grid */}
-        {filteredServices.length > 0 ? (
+        {services.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredServices.map(service => (
+            {services.map(service => (
               <div key={service._id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 group flex flex-col">
                 <div className="h-56 overflow-hidden relative bg-slate-100">
-                  <img src={service.image || `https://source.unsplash.com/800x600/?${service.category}`} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img loading="lazy" src={service.image || `https://source.unsplash.com/800x600/?${service.category}`} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1.5 rounded-full shadow-sm text-slate-700">
                     {service.category}
                   </div>
@@ -118,7 +150,7 @@ const Services = () => {
                       <>
                         <div className="flex -space-x-3">
                            {service.providers.slice(0, 3).map((p, i) => (
-                              <img key={i} src={p.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name || 'Pro')}&background=10b981&color=fff`} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="Provider" />
+                              <img loading="lazy" key={i} src={p.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name || 'Pro')}&background=10b981&color=fff`} className="w-10 h-10 rounded-full border-2 border-white shadow-sm" alt="Provider" />
                            ))}
                            {service.providers.length > 3 && (
                               <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600 shadow-sm">
@@ -134,6 +166,7 @@ const Services = () => {
                     ) : (
                       <>
                         <img 
+                          loading="lazy"
                           src={service.provider?.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(service.provider?.name || 'Pro')}&background=10b981&color=fff`} 
                           alt={service.provider?.name || 'Provider'} 
                           className="w-10 h-10 rounded-full object-cover border-2 border-slate-100 shadow-sm"
@@ -179,6 +212,23 @@ const Services = () => {
               className="mt-6 text-primary-600 font-medium hover:text-primary-700 transition-colors bg-primary-50 px-6 py-2 rounded-full"
             >
               Clear all filters
+            </button>
+          </div>
+        )}
+
+        {/* Load More Button */}
+        {page < totalPages && (
+          <div className="mt-12 text-center">
+            <button 
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold py-3 px-8 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+            >
+              {loadingMore ? (
+                <><Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5 text-slate-500" /> Loading...</>
+              ) : (
+                'Load More Services'
+              )}
             </button>
           </div>
         )}

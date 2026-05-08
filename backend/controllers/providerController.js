@@ -5,8 +5,22 @@ import User from '../models/User.js';
 // @access  Public
 export const getProviders = async (req, res) => {
   try {
-    const providers = await User.find({ role: 'provider' }).select('-password');
-    res.json(providers);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const total = await User.countDocuments({ role: 'provider' });
+    const providers = await User.find({ role: 'provider' })
+      .skip(skip)
+      .limit(limit)
+      .select('name email profileImage phone address averageRating reviewsCount');
+
+    res.json({
+      data: providers,
+      page,
+      pages: Math.ceil(total / limit),
+      total
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }

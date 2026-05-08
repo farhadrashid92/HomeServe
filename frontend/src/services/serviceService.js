@@ -1,7 +1,8 @@
 import api from './api';
 
-export const getServices = async () => {
-  const response = await api.get('/services');
+export const getServices = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await api.get(`/services${query ? `?${query}` : ''}`);
   return response.data;
 };
 

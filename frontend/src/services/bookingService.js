@@ -5,8 +5,9 @@ export const createBooking = async (bookingData) => {
   return response.data;
 };
 
-export const getBookings = async () => {
-  const response = await api.get('/bookings');
+export const getBookings = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await api.get(`/bookings${query ? `?${query}` : ''}`);
   return response.data;
 };
 

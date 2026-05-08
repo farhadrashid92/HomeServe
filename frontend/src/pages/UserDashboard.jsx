@@ -87,7 +87,7 @@ const UserDashboard = () => {
       ]);
       
       if (isBackground && previousBookingsRef.current.length > 0) {
-         bookingsData.forEach(newBooking => {
+         (bookingsData.data || bookingsData).forEach(newBooking => {
            const oldBooking = previousBookingsRef.current.find(b => b._id === newBooking._id);
            if (oldBooking && oldBooking.status !== newBooking.status) {
              setPopupNotification({
@@ -100,8 +100,9 @@ const UserDashboard = () => {
          });
       }
 
-      previousBookingsRef.current = bookingsData;
-      setBookings(bookingsData);
+      const activeList = bookingsData.data || bookingsData;
+      previousBookingsRef.current = activeList;
+      setBookings(activeList);
       setMyReviews(reviewsData);
     } catch (err) {
       if (!isBackground) setError('Failed to fetch dashboard data.');

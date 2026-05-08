@@ -3,6 +3,7 @@ dotenv.config(); // Must be first so env vars are available to all imports below
 
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
@@ -53,6 +54,9 @@ connectDB().then(async () => {
 });
 
 const app = express();
+
+// Apply gzip compression to all responses
+app.use(compression());
 
 // Body parser with 10MB limit for Base64 image strings
 app.use(express.json({ limit: '10mb' }));

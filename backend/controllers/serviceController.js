@@ -5,14 +5,28 @@ import Service from '../models/Service.js';
 // @access  Public
 export const getServices = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const filter = {};
     if (req.query.category) filter.category = req.query.category;
     if (req.query.search) filter.title = { $regex: req.query.search, $options: 'i' };
 
+    const total = await Service.countDocuments(filter);
     const services = await Service.find(filter)
-      .populate('providers', 'name email profileImage phone address averageRating reviewsCount')
-      .populate('provider', 'name email profileImage phone address averageRating reviewsCount');
-    res.json(services);
+      .skip(skip)
+      .limit(limit)
+      .select('-__v')
+      .populate('providers', 'name email profileImage averageRating reviewsCount')
+      .populate('provider', 'name email profileImage averageRating reviewsCount');
+      
+    res.json({
+      data: services,
+      page,
+      pages: Math.ceil(total / limit),
+      total
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }

@@ -52,5 +52,8 @@ const serviceSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+serviceSchema.index({ category: 1 });
+serviceSchema.index({ title: 'text' });
+
 const Service = mongoose.model('Service', serviceSchema);
 export default Service;

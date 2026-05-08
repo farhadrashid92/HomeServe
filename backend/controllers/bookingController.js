@@ -60,6 +60,10 @@ export const createBooking = async (req, res) => {
 // @access  Private
 export const getBookings = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const query = {};
     if (req.user.role === 'customer') {
       query.user = req.user._id;
@@ -68,13 +72,22 @@ export const getBookings = async (req, res) => {
     }
     // admin gets all — no filter
 
+    const total = await Booking.countDocuments(query);
     const bookings = await Booking.find(query)
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select('-__v')
       .populate('user', 'name email phone')
       .populate('provider', 'name profileImage phone')
       .populate('service', 'title price category');
 
-    res.json(bookings);
+    res.json({
+      data: bookings,
+      page,
+      pages: Math.ceil(total / limit),
+      total
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }

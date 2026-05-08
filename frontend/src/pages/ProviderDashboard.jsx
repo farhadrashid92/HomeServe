@@ -124,7 +124,7 @@ const ProviderDashboard = () => {
       
       if (isBackground && previousBookingsRef.current.length > 0) {
         const oldIds = previousBookingsRef.current.map(b => b._id);
-        const newRequests = bookingsData.filter(b => b.status === 'pending' && !oldIds.includes(b._id));
+        const newRequests = (bookingsData.data || bookingsData).filter(b => b.status === 'pending' && !oldIds.includes(b._id));
         
         if (newRequests.length > 0) {
           setPopupNotification({
@@ -136,8 +136,9 @@ const ProviderDashboard = () => {
         }
       }
 
-      previousBookingsRef.current = bookingsData;
-      setBookings(bookingsData);
+      const activeList = bookingsData.data || bookingsData;
+      previousBookingsRef.current = activeList;
+      setBookings(activeList);
       setReviews(reviewsData);
     } catch (err) {
       if (!isBackground) setError('Failed to fetch dashboard data.');
