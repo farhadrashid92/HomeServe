@@ -4,8 +4,6 @@ import Service from '../models/Service.js';
 import generateToken from '../utils/generateToken.js';
 import bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
-import crypto from 'crypto';
-import sendEmail from '../utils/sendEmail.js';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID');
 
@@ -261,97 +259,5 @@ export const googleAuth = async (req, res) => {
   } catch (error) {
     console.error("Google Auth Validation Error:", error.message);
     res.status(401).json({ message: 'Google authentication validation actively failed' });
-  }
-};
-// @desc    Forgot Password
-// @route   POST /api/auth/forgot-password
-// @access  Public
-export const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-
-  try {
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: 'There is no user with that email' });
-    }
-
-    // Generate token
-    const resetToken = crypto.randomBytes(20).toString('hex');
-
-    // Hash token and set to resetPasswordToken field
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-    // Set expire (10 minutes)
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
-
-    await user.save();
-
-    // Create reset url
-    const protocol = req.protocol === 'https' ? 'https' : 'http';
-    const host = process.env.FRONTEND_URL || `${protocol}://localhost:5173`;
-    const resetUrl = `${host}/reset-password/${resetToken}`;
-
-    const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
-
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Password reset token',
-        message,
-      });
-
-      res.status(200).json({ message: 'Email sent' });
-    } catch (err) {
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
-
-      await user.save();
-
-      res.status(500).json({ message: 'Email could not be sent' });
-    }
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Server Error' });
-  }
-};
-
-// @desc    Reset Password
-// @route   PUT /api/auth/reset-password/:token
-// @access  Public
-export const resetPassword = async (req, res) => {
-  try {
-    // Get hashed token
-    const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-
-    const user = await User.findOne({
-      resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired token' });
-    }
-
-    // Set new password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(req.body.password, salt);
-
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-
-    await user.save();
-
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token: generateToken(user._id),
-      message: 'Password reset successful',
-    });
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: 'Server Error' });
   }
 };

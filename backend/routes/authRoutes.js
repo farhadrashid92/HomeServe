@@ -1,6 +1,6 @@
 import express from 'express';
 import { check } from 'express-validator';
-import { registerUser, loginUser, updateProfile, googleAuth, forgotPassword, resetPassword } from '../controllers/authController.js';
+import { registerUser, loginUser, updateProfile, googleAuth } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -33,15 +33,5 @@ router.put('/profile', protect, updateProfile);
 // @route   POST /api/auth/google
 // @access  Public
 router.post('/google', googleAuth);
-
-// @desc    Forgot Password
-// @route   POST /api/auth/forgot-password
-// @access  Public
-router.post('/forgot-password', forgotPassword);
-
-// @desc    Reset Password
-// @route   PUT /api/auth/reset-password/:token
-// @access  Public
-router.put('/reset-password/:token', resetPassword);
 
 export default router;

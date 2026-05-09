@@ -13,8 +13,6 @@ const Contact = React.lazy(() => import('./pages/Contact'));
 const Login = React.lazy(() => import('./pages/Login'));
 const Register = React.lazy(() => import('./pages/Register'));
 const RegisterProvider = React.lazy(() => import('./pages/RegisterProvider'));
-const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
-const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
 const FAQ = React.lazy(() => import('./pages/FAQ'));
 const BookingFlow = React.lazy(() => import('./pages/BookingFlow'));
 const Inbox = React.lazy(() => import('./pages/Inbox'));
@@ -42,8 +40,6 @@ function App() {
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="register-provider" element={<RegisterProvider />} />
-              <Route path="forgot-password" element={<ForgotPassword />} />
-              <Route path="reset-password/:token" element={<ResetPassword />} />
               <Route path="faq" element={<FAQ />} />
               <Route path="privacy-policy" element={<PrivacyPolicy />} />
               <Route path="terms-of-service" element={<TermsOfService />} />

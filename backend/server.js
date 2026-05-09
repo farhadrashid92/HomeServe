@@ -59,9 +59,7 @@ connectDB().then(async () => {
 const app = express();
 
 // Secure HTTP headers
-app.use(helmet({
-  crossOriginResourcePolicy: false,
-}));
+app.use(helmet());
 
 // Apply gzip compression to all responses
 app.use(compression());
