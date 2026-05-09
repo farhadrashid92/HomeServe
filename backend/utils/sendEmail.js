@@ -5,11 +5,15 @@ const sendEmail = async (options) => {
   if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     // Create a transporter using your SMTP provider (e.g. Gmail)
     const transporter = nodemailer.createTransport({
-      service: 'gmail', // Or use host/port for other providers
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      // Force IPv4 to prevent ENETUNREACH on environments without IPv6 routing
+      family: 4,
     });
 
     const mailOptions = {
