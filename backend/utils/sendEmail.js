@@ -1,5 +1,9 @@
 import nodemailer from 'nodemailer';
+import dns from 'dns';
 
+// Force Node.js to use IPv4 instead of IPv6 for all DNS lookups
+// This fixes the ENETUNREACH IPv6 issue on Render.
+dns.setDefaultResultOrder('ipv4first');
 const sendEmail = async (options) => {
   // Check if real SMTP credentials exist
   if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
