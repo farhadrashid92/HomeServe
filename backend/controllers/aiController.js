@@ -68,6 +68,6 @@ You MUST return ONLY a raw JSON object string with these EXACT 6 keys. No markdo
       });
     }
     
-    return res.status(500).json({ message: "Failed to process AI booking logic.", error: error.message });
+    return res.status(500).json({ message: "Failed to process AI booking logic." });
   }
 };

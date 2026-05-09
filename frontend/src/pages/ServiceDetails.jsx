@@ -69,7 +69,7 @@ const ServiceDetails = () => {
           <div className="w-full lg:w-2/3">
             <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 mb-8">
               <div className="h-80 w-full relative bg-slate-100">
-                <img src={service.image || `https://source.unsplash.com/800x600/?${service.category}`} alt={service.title} className="w-full h-full object-cover" />
+                <img src={service.image || `https://placehold.co/800x600/e2e8f0/64748b?text=${encodeURIComponent(service.category)}`} alt={service.title} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
                 <div className="absolute bottom-6 left-6 right-6 text-white text-shadow">
                   <span className="bg-primary-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block">
@@ -239,11 +239,11 @@ const ServiceDetails = () => {
                 </div>
                 <div className="flex justify-between text-sm text-slate-600">
                   <span>Visiting Charges <span className="text-xs ml-1 text-slate-400">(refundable)</span></span>
-                  <span className="font-medium text-slate-900">Rs 200</span>
+                  <span className="font-medium text-slate-900">Rs 300</span>
                 </div>
                 <div className="border-t border-slate-200 pt-4 flex justify-between font-bold text-lg text-primary-600">
                   <span>Estimated Total</span>
-                  <span>Rs {service.price + 200}</span>
+                  <span>Rs {service.price + 300}</span>
                 </div>
                 
                 <div className="flex flex-col gap-3">

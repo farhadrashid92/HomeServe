@@ -51,7 +51,7 @@ export const createBooking = async (req, res) => {
 
     res.status(201).json(populated);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -89,7 +89,7 @@ export const getBookings = async (req, res) => {
       total
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -109,7 +109,7 @@ export const getBookingById = async (req, res) => {
       res.status(404).json({ message: 'Booking not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -153,7 +153,7 @@ export const updateBookingStatus = async (req, res) => {
 
     res.json(populated);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -199,6 +199,6 @@ export const getAvailableSlots = async (req, res) => {
 
     res.json({ availableSlots });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };

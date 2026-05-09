@@ -28,7 +28,7 @@ export const getServices = async (req, res) => {
       total
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -40,7 +40,7 @@ export const getCategories = async (req, res) => {
     const categories = await Service.distinct('category');
     res.json(categories);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -58,7 +58,7 @@ export const getServiceById = async (req, res) => {
       res.status(404).json({ message: 'Service not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -81,7 +81,7 @@ export const createService = async (req, res) => {
     const createdService = await service.save();
     res.status(201).json(createdService);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -106,7 +106,7 @@ export const updateService = async (req, res) => {
       res.status(404).json({ message: 'Service not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -123,6 +123,6 @@ export const deleteService = async (req, res) => {
       res.status(404).json({ message: 'Service not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };

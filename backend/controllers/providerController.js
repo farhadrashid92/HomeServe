@@ -22,7 +22,7 @@ export const getProviders = async (req, res) => {
       total
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -38,6 +38,6 @@ export const getProviderById = async (req, res) => {
       res.status(404).json({ message: 'Provider not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };

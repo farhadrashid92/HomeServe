@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, User, LogOut, ChevronDown, Bell, MessageSquare } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getUnreadCount } from '../services/messageService';
 
@@ -9,6 +9,7 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [unreadMsg, setUnreadMsg] = useState(0);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const { isAuthenticated, currentUser, logout } = useAuth();
 
@@ -23,6 +24,17 @@ const Navbar = () => {
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Globally track unread messaging counts avoiding massive prop-drilling
@@ -76,7 +88,7 @@ const Navbar = () => {
                   )}
                 </Link>
 
-                <div className="relative">
+                <div className="relative" ref={dropdownRef}>
                   <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-2 focus:outline-none">
                     <img src={currentUser.profileImage || "https://ui-avatars.com/api/?name="+currentUser.name+"&background=10b981&color=fff"} className="w-8 h-8 rounded-full" alt="Profile" />
                     <span className="text-slate-700 font-medium">{currentUser.name}</span>

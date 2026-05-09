@@ -19,7 +19,7 @@ export const getAdminAnalytics = async (req, res) => {
       completedBookings
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -31,7 +31,7 @@ export const getAdminUsers = async (req, res) => {
     const users = await User.find({}).select('-password').sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -52,7 +52,7 @@ export const deleteUser = async (req, res) => {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -65,7 +65,7 @@ export const getAdminServices = async (req, res) => {
       .populate('providers', 'name email').sort({ createdAt: -1 });
     res.json(services);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -82,7 +82,7 @@ export const deleteService = async (req, res) => {
       res.status(404).json({ message: 'Service not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -98,6 +98,6 @@ export const getAdminBookings = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(bookings);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };

@@ -1,0 +1,1 @@
+import{a}from"./index-DYQxTEYF.js";const n=async(e={})=>{const s=new URLSearchParams(e).toString();return(await a.get(`/services${s?`?${s}`:""}`)).data},c=async e=>(await a.get(`/services/${e}`)).data,o=async e=>(await a.post("/services",e)).data,i=async(e,s)=>(await a.put(`/services/${e}`,s)).data;export{c as a,o as c,n as g,i as u};

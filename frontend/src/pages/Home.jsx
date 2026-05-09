@@ -203,7 +203,7 @@ const Home = () => {
                 <div className="h-48 overflow-hidden relative">
                   <img
                     loading="lazy"
-                    src={service.image || `https://source.unsplash.com/800x600/?${service.category}`}
+                    src={service.image || `https://placehold.co/800x600/e2e8f0/64748b?text=${encodeURIComponent(service.category)}`}
                     alt={service.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />

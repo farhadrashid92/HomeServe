@@ -8,7 +8,7 @@ export const getCategories = async (req, res) => {
     const categories = await Category.find().sort({ name: 1 });
     res.json(categories);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -30,7 +30,7 @@ export const createCategory = async (req, res) => {
     const category = await Category.create({ name: name.trim(), description: description || '' });
     res.status(201).json(category);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -54,7 +54,7 @@ export const updateCategory = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({ message: 'A category with that name already exists' });
     }
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };
 
@@ -70,6 +70,6 @@ export const deleteCategory = async (req, res) => {
     await category.deleteOne();
     res.json({ message: 'Category removed' });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    res.status(500).json({ message: 'Server Error' });
   }
 };

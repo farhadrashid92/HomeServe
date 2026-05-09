@@ -472,7 +472,7 @@ const BookingFlow = () => {
           <div className="w-full md:w-1/3">
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 sticky top-24">
               <div className="flex gap-4 items-center mb-6 pb-6 border-b border-slate-100">
-                <img src={service.image || `https://source.unsplash.com/800x600/?${service.category}`} className="w-16 h-16 rounded-xl object-cover" alt="" />
+                <img src={service.image || `https://placehold.co/800x600/e2e8f0/64748b?text=${encodeURIComponent(service.category)}`} className="w-16 h-16 rounded-xl object-cover" alt="" />
                 <div>
                   <h3 className="font-bold text-slate-900 leading-tight">{service.title}</h3>
                   <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 mt-1 inline-block rounded-full">{service.category}</span>

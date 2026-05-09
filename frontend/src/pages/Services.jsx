@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Star, Search, Loader2 } from 'lucide-react';
 import { getServices } from '../services/serviceService';
@@ -15,6 +15,18 @@ const Services = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  // Debounced search term to avoid firing API calls on every keystroke
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+  const debounceTimer = useRef(null);
+
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(debounceTimer.current);
+  }, [searchTerm]);
+
   // When URL params change (e.g. user clicks a footer/homepage link), update filters
   useEffect(() => {
     const cat = searchParams.get('category');
@@ -25,16 +37,20 @@ const Services = () => {
     setServices([]);
   }, [searchParams]);
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+    setServices([]);
+  }, [selectedCategory, debouncedSearch]);
+
   const fetchServices = async (currentPage, isLoadMore = false) => {
     try {
       if (isLoadMore) setLoadingMore(true);
       else setLoading(true);
 
       const params = { page: currentPage, limit: 6 };
-      // Note: we can pass category/search to backend, but currently it's filtered frontend.
-      // If backend supports category/search, we pass it:
       if (selectedCategory !== 'All') params.category = selectedCategory;
-      if (searchTerm) params.search = searchTerm;
+      if (debouncedSearch) params.search = debouncedSearch;
 
       const response = await getServices(params);
       
@@ -53,11 +69,8 @@ const Services = () => {
   };
 
   useEffect(() => {
-    // Only fetch if we are not filtering on the frontend OR if backend is doing the filter
-    // Actually, previously it fetched all and filtered on frontend.
-    // Since backend supports ?category and ?search, we should use backend filtering.
     fetchServices(page, page > 1);
-  }, [page, selectedCategory, searchTerm]);
+  }, [page, selectedCategory, debouncedSearch]);
 
   const handleLoadMore = () => {
     if (page < totalPages) {
@@ -67,11 +80,7 @@ const Services = () => {
 
   const categories = ['All', 'Cleaning', 'Maintenance', 'Plumbing', 'Electrical', 'Pest Control', 'Painting', 'Carpenter', 'CCTV Installation', 'Gardening', 'Home Shifting'];
 
-  const filteredServices = services.filter(service => {
-    const matchesSearch = service.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || service.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Backend handles all filtering via query params — no client-side filter needed
 
   if (loading) {
     return (
@@ -138,7 +147,7 @@ const Services = () => {
             {services.map(service => (
               <div key={service._id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 group flex flex-col">
                 <div className="h-56 overflow-hidden relative bg-slate-100">
-                  <img loading="lazy" src={service.image || `https://source.unsplash.com/800x600/?${service.category}`} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img loading="lazy" src={service.image || `https://placehold.co/800x600/e2e8f0/64748b?text=${encodeURIComponent(service.category)}`} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1.5 rounded-full shadow-sm text-slate-700">
                     {service.category}
                   </div>

@@ -71,17 +71,28 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
-// Global API rate limiter
+// Global API rate limiter — generous to accommodate polling (inbox, dashboard, navbar)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-  message: 'Too many requests from this IP, please try again after 15 minutes',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  max: 500, // Limit each IP to 500 requests per window
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-// Apply rate limiter to all /api routes
+// Strict rate limiter for authentication endpoints (brute-force protection)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20, // Only 20 login/register attempts per 15 minutes
+  message: { message: 'Too many authentication attempts. Please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiters
 app.use('/api', apiLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // Enable CORS — strictly accepting requests from the generated Vercel string or local dev bounds
 app.use(cors({
