@@ -1,23 +1,33 @@
 import nodemailer from 'nodemailer';
 import dns from 'dns';
 
-// Force Node.js to use IPv4 instead of IPv6 for all DNS lookups
-// This fixes the ENETUNREACH IPv6 issue on Render.
-dns.setDefaultResultOrder('ipv4first');
 const sendEmail = async (options) => {
   // Check if real SMTP credentials exist
   if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    
+    // Manually resolve IPv4 address to completely bypass Node.js IPv6 routing bugs on Render
+    const ipv4Address = await new Promise((resolve) => {
+      dns.resolve4('smtp.gmail.com', (err, addresses) => {
+        if (err || !addresses || addresses.length === 0) {
+          resolve('smtp.gmail.com'); // Fallback to hostname if DNS resolution fails
+        } else {
+          resolve(addresses[0]);
+        }
+      });
+    });
+
     // Create a transporter using your SMTP provider (e.g. Gmail)
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
+      host: ipv4Address,
       port: 587,
       secure: false, // true for 465, false for other ports
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      // Force IPv4 to prevent ENETUNREACH on environments without IPv6 routing
-      family: 4,
+      tls: {
+        servername: 'smtp.gmail.com', // Crucial for TLS handshake since we are connecting via raw IP
+      }
     });
 
     const mailOptions = {
