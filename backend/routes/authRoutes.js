@@ -40,8 +40,8 @@ router.post('/google', googleAuth);
 router.post('/forgot-password', forgotPassword);
 
 // @desc    Reset Password
-// @route   PUT /api/auth/reset-password/:token
+// @route   POST /api/auth/reset-password/:token
 // @access  Public
-router.put('/reset-password/:token', resetPassword);
+router.post('/reset-password/:token', resetPassword);
 
 export default router;

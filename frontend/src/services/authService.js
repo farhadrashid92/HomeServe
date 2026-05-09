@@ -53,7 +53,7 @@ export const forgotPassword = async (email) => {
 };
 
 export const resetPassword = async (token, password) => {
-  const response = await api.put(`/auth/reset-password/${token}`, { password });
+  const response = await api.post(`/auth/reset-password/${token}`, { password });
   if (response.data.token) {
     localStorage.setItem('token', response.data.token);
     localStorage.setItem('user', JSON.stringify(response.data));
